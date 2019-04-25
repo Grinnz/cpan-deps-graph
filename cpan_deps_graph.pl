@@ -3,6 +3,9 @@ use 5.020;
 use Mojolicious::Lite -signatures;
 use MetaCPAN::Client;
 use Mojo::Redis;
+use lib::relative 'lib';
+
+push @{app->commands->namespaces}, 'CPANDepsGraph::Command';
 
 my $mcpan = MetaCPAN::Client->new;
 helper mcpan => sub ($c) { $mcpan };
