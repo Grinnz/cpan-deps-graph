@@ -5,7 +5,8 @@
   <title><%= param('dist') %> - CPAN Dependencies Graph</title>
 </head>
 <body>
-  <div id="deps" style="width: 800px; height: 600px; margin: auto;"></div>
+  <h1 style="text-align: center;"><%= param('dist') %></h1>
+  <div id="deps" style="width: 1280px; height: 960px; margin: auto;"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.5.4/cytoscape.min.js" integrity="sha256-pNb/9BiuHjIqp9FjfViB/xIHO/xSO4YwSkAzQI1t7gw=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/url-polyfill@1.1.5/url-polyfill.min.js" integrity="sha256-ZSI7Fm/oJtJpkwXXAL0SoqbVdG8ksnhrRz3MxwAOEEc=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/dist/fetch.umd.js" integrity="sha256-mgxDAbboBKeoCOtpaU7QhWdgWBGum+8dPxnIjiC97JI=" crossorigin="anonymous"></script>
