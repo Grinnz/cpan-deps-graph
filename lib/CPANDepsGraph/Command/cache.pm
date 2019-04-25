@@ -13,7 +13,7 @@ sub run ($self, @args) {
   if ($all) {
     my $mcpan = $self->app->mcpan;
     my $dists_rs = $mcpan->all('distributions', {fields => ['name']});
-    my @dists;
+    @dists = ();
     while (my $dist = $dists_rs->next) {
       push @dists, $dist->name;
     }

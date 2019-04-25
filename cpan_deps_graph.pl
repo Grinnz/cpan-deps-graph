@@ -13,7 +13,8 @@ push @{app->commands->namespaces}, 'CPANDepsGraph::Command';
 my $mcpan = MetaCPAN::Client->new;
 helper mcpan => sub ($c) { $mcpan };
 
-my $redis = Mojo::Redis->new;
+my $url = app->config->{redis_url};
+my $redis = Mojo::Redis->new($url);
 helper redis => sub ($c) { $redis };
 
 helper phases => sub ($c) { qw(configure build test runtime develop) };
@@ -34,6 +35,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   ]}, {fields => ['distribution','provides']});
   my %deps;
   while (my $dep_release = $dep_releases->next) {
+    next unless defined $dep_release->provides;
     foreach my $module (grep { exists $deps_by_module{$_} } @{$dep_release->provides}) {
       $deps{$_->{phase}}{$_->{relationship}}{$dep_release->distribution} = 1 for @{$deps_by_module{$module}};
     }
