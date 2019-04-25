@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title><%= $dist %> - CPAN Dependencies Graph</title>
+</head>
+<body>
+  <div id="deps"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.5.4/cytoscape.min.js" integrity="sha256-pNb/9BiuHjIqp9FjfViB/xIHO/xSO4YwSkAzQI1t7gw=" crossorigin="anonymous"></script>
+  <script src="/graph.js">
+</body>
+</html>
