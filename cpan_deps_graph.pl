@@ -43,8 +43,8 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   return \%deps;
 };
 
-helper cache_dist_deps => sub ($c, $dist) {
-  my $deps = $c->retrieve_dist_deps($dist);
+helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
+  $deps //= $c->retrieve_dist_deps($dist);
   my $redis = $c->redis->db;
   $redis->multi;
   foreach my $phase ($c->phases) {
@@ -56,6 +56,21 @@ helper cache_dist_deps => sub ($c, $dist) {
     }
   }
   $redis->exec;
+};
+
+helper cache_dist_deeply => sub ($c, $dist) {
+  my %seen;
+  my @to_check = $dist;
+  while (defined(my $dist = shift @to_check)) {
+    next if $seen{$dist}++;
+    my $deps = $c->retrieve_dist_deps($dist);
+    $c->cache_dist_deps($dist, $deps);
+    foreach my $phase (keys %$deps) {
+      foreach my $relationship (keys %{$deps->{$phase}}) {
+        push @to_check, keys %{$deps->{$phase}{$relationship}};
+      }
+    }
+  }
 };
 
 helper get_dist_deps => sub ($c, $dist, $phases, $relationships) {

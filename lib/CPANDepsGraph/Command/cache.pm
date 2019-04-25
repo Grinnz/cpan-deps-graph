@@ -6,7 +6,9 @@ use Mojo::Util 'getopt';
 
 sub run ($self, @args) {
   getopt \@args,
-    'all|a' => \my $all;
+    'all|a' => \my $all,
+    'deeply|d' => \my $deeply;
+  $deeply = 0 if $all;
 
   my @dists = @args;
 
@@ -20,7 +22,11 @@ sub run ($self, @args) {
   }
   
   foreach my $dist (@dists) {
-    $self->app->cache_dist_deps($dist);
+    if ($deeply) {
+      $self->app->cache_dist_deeply($dist);
+    } else {
+      $self->app->cache_dist_deps($dist);
+    }
     print "Cached dependencies for $dist\n";
   }
 }
