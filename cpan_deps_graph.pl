@@ -54,7 +54,7 @@ helper cache_dist_deps => sub ($c, $dist) {
   $redis->exec;
 };
 
-helper get_dist_deps => sub ($c, $dist, $phases = [$c->phases], $relationships = [$c->relationships]) {
+helper get_dist_deps => sub ($c, $dist, $phases, $relationships) {
   my $redis = $c->redis->db;
   my %deps;
   foreach my $phase (@$phases) {
@@ -64,6 +64,32 @@ helper get_dist_deps => sub ($c, $dist, $phases = [$c->phases], $relationships =
     }
   }
   return [sort keys %deps];
+};
+
+helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
+  my %seen;
+  my %nodes = ($dist => {parents => {}, children => {}});
+  my @to_check = $dist;
+  while (defined(my $dist = shift @to_check)) {
+    next if $seen{$dist}++;
+    my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships);
+    foreach my $dep (@$dist_deps) {
+      $nodes{$dep} //= {parents => {}, children => {}};
+      $nodes{$dep}{parents}{$dist} = 1;
+      $nodes{$dist}{children}{$dep} = 1;
+      push @to_check, $dep;
+    }
+  }
+  return \%nodes;
+};
+
+get '/api/deps_graph/:dist' => sub ($c) {
+  my $dist = $c->param('dist');
+  my $phases = $c->req->every_param('phase');
+  $phases = [$c->phases] unless @$phases;
+  my $relationships = $c->req->every_param('relationship');
+  $relationships = [$c->relationships] unless @$relationships;
+  $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships));
 };
 
 app->start;
