@@ -21,12 +21,8 @@ sub run ($self, @args) {
   }
   
   foreach my $dist (@dists) {
-    try {
-      $self->app->cache_dist_deps($dist);
-      print "Cached dependencies for $dist\n";
-    } catch {
-      warn "Failed to cache dependencies for $dist: $@";
-    }
+    $self->app->cache_dist_deps($dist);
+    print "Cached dependencies for $dist\n";
   }
 }
 

@@ -3,6 +3,7 @@ use 5.020;
 use Mojolicious::Lite -signatures;
 use MetaCPAN::Client;
 use Mojo::Redis;
+use Syntax::Keyword::Try;
 use lib::relative 'lib';
 
 push @{app->commands->namespaces}, 'CPANDepsGraph::Command';
@@ -18,7 +19,8 @@ helper relationships => sub ($c) { qw(requires recommends suggests) };
 
 helper retrieve_dist_deps => sub ($c, $dist) {
   my $mcpan = $c->mcpan;
-  my $release = $mcpan->release($dist);
+  my $release;
+  try { $release = $mcpan->release($dist) } catch { return {} }
   my %deps_by_module;
   foreach my $dep (@{$release->dependency}) {
     push @{$deps_by_module{$dep->{module}}}, $dep;
