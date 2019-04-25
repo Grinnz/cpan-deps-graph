@@ -70,23 +70,25 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships) {
 
 helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
   my %seen;
-  my %nodes = ($dist => {parents => {}, children => {}});
+  my %children = ($dist => {});
   my @to_check = $dist;
   while (defined(my $dist = shift @to_check)) {
     next if $seen{$dist}++;
     my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships);
     foreach my $dep (@$dist_deps) {
-      $nodes{$dep} //= {parents => {}, children => {}};
-      $nodes{$dep}{parents}{$dist} = 1;
-      $nodes{$dist}{children}{$dep} = 1;
+      $children{$dep} //= {};
+      $children{$dist}{$dep} = 1;
       push @to_check, $dep;
     }
   }
-  return \%nodes;
+  my @nodes = map {
+    {distribution => $_, children => [sort keys %{$children{$_}}]}
+  } sort keys %children;
+  return \@nodes;
 };
 
-get '/api/deps/:dist' => sub ($c) {
-  my $dist = $c->param('dist');
+get '/api/v1/deps' => sub ($c) {
+  my $dist = $c->req->param('dist');
   my $phases = $c->req->every_param('phase');
   $phases = [$c->phases] unless @$phases;
   my $relationships = $c->req->every_param('relationship');
@@ -94,6 +96,6 @@ get '/api/deps/:dist' => sub ($c) {
   $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships));
 };
 
-get '/graph/:dist' => 'graph';
+get '/graph';
 
 app->start;
