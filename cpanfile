@@ -3,3 +3,4 @@ requires 'lib::relative';
 requires 'MetaCPAN::Client';
 requires 'Mojolicious' => '8.0';
 requires 'Mojo::Redis';
+requires 'Syntax::Keyword::Try';

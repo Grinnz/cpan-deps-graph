@@ -6,6 +6,8 @@ use Mojo::Redis;
 use Syntax::Keyword::Try;
 use lib::relative 'lib';
 
+plugin 'Config' => {file => app->home->child('cpan_deps_graph.conf')};
+
 push @{app->commands->namespaces}, 'CPANDepsGraph::Command';
 
 my $mcpan = MetaCPAN::Client->new;
@@ -83,7 +85,7 @@ helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
   return \%nodes;
 };
 
-get '/api/deps_graph/:dist' => sub ($c) {
+get '/api/deps/:dist' => sub ($c) {
   my $dist = $c->param('dist');
   my $phases = $c->req->every_param('phase');
   $phases = [$c->phases] unless @$phases;
@@ -91,5 +93,7 @@ get '/api/deps_graph/:dist' => sub ($c) {
   $relationships = [$c->relationships] unless @$relationships;
   $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships));
 };
+
+get '/graph/:dist' => 'graph';
 
 app->start;

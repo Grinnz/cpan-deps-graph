@@ -3,7 +3,6 @@ package CPANDepsGraph::Command::cache;
 use 5.020;
 use Mojo::Base 'Mojolicious::Command', -signatures;
 use Mojo::Util 'getopt';
-use Syntax::Keyword::Try;
 
 sub run ($self, @args) {
   getopt \@args,
