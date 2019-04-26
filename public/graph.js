@@ -11,7 +11,22 @@ function populate_graph(data) {
   return {nodes: nodes, edges: edges};
 }
 
-function create_graph(elements) {
+function create_graph(elements, graphtype) {
+  var layout;
+  if (graphtype === 'cose') {
+    layout = {
+      name: 'cose',
+      nodeDimensionsIncludeLabels: true,
+      randomize: true
+    };
+  } else {
+    layout = {
+      name: 'breadthfirst',
+      circle: true,
+      directed: true,
+      spacingFactor: 1
+    }
+  }
   var cy = cytoscape({
     container: document.getElementById('deps'),
     elements: elements,
@@ -37,17 +52,14 @@ function create_graph(elements) {
         },
       }
     ],
-    layout: {
-      name: 'breadthfirst',
-      circle: true,
-      directed: true,
-      spacingFactor: 1,
-    }
+    layout: layout
   });
 }
 
 var params = new URLSearchParams(window.location.search.substring(1));
 var dist = params.get('dist');
+var graphtype = params.get('type');
+if (graphtype === null || graphtype === '') { graphtype = 'breadthfirst'; }
 
 var deps_url = new URL('/api/v1/deps', window.location.href);
 deps_url.searchParams.set('dist', dist);
@@ -61,7 +73,7 @@ fetch(deps_url).then(function(response) {
   }
 }).then(function(data) {
   var elements = populate_graph(data);
-  create_graph(elements);
+  create_graph(elements, graphtype);
 }).catch(function(error) {
   console.log('Error retrieving dependencies', error);
 });
