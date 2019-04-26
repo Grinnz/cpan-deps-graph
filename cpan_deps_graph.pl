@@ -30,6 +30,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   my $mcpan = $c->mcpan;
   my $release;
   try { $release = $mcpan->release($dist) } catch { return {} }
+  return {} unless defined $release->dependency and @{$release->dependency};
   my %deps_by_module;
   foreach my $dep (@{$release->dependency}) {
     push @{$deps_by_module{$dep->{module}}}, $dep;
