@@ -1,10 +1,16 @@
 #!/usr/bin/env perl
 use 5.020;
 use Mojolicious::Lite -signatures;
+use CPAN::DistnameInfo;
+use Cpanel::JSON::XS;
+use HTTP::Simple 'getjson';
 use MetaCPAN::Client;
 use Mojo::Redis;
+use Mojo::URL;
 use Syntax::Keyword::Try;
 use lib::relative 'lib';
+
+$HTTP::Simple::JSON = Cpanel::JSON::XS->new->utf8->allow_dupkeys;
 
 plugin 'Config' => {file => app->home->child('cpan_deps_graph.conf')};
 
@@ -28,17 +34,15 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   foreach my $dep (@{$release->dependency}) {
     push @{$deps_by_module{$dep->{module}}}, $dep;
   }
-  my $dep_releases = $mcpan->release({all => [
-    {status => 'latest'},
-    {either => [map { +{provides => $_} } keys %deps_by_module]},
-    {not => [{distribution => 'perl'}]},
-  ]}, {fields => ['distribution','provides']});
+  my $url = Mojo::URL->new('https://cpanmeta.grinnz.com/api/v2/packages')
+    ->query(module => [keys %deps_by_module]);
+  my $dep_packages = getjson("$url")->{data};
   my %deps;
-  while (my $dep_release = $dep_releases->next) {
-    next unless defined $dep_release->provides;
-    foreach my $module (grep { exists $deps_by_module{$_} } @{$dep_release->provides}) {
-      $deps{$_->{phase}}{$_->{relationship}}{$dep_release->distribution} = 1 for @{$deps_by_module{$module}};
-    }
+  foreach my $package (@$dep_packages) {
+    my $module = $package->{module} // next;
+    my $path = $package->{path} // next;
+    my $distname = CPAN::DistnameInfo->new($path)->dist;
+    $deps{$_->{phase}}{$_->{relationship}}{$distname} = 1 for @{$deps_by_module{$module}};
   }
   return \%deps;
 };
