@@ -13,7 +13,6 @@ function populate_graph(data) {
 
 function create_graph(elements, graphtype) {
   var layout;
-  if (graphtype === null || graphtype === '') { graphtype = 'topdown'; }
   if (graphtype === 'cose') {
     layout = {
       name: 'cose',
@@ -100,6 +99,9 @@ fetch(deps_url).then(function(response) {
     throw new Error(response.status + ' ' + response.statusText);
   }
 }).then(function(data) {
+  if (graphtype === null || graphtype === '') {
+    graphtype = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'circle';
+  }
   var elements = populate_graph(data);
   create_graph(elements, graphtype);
 }).catch(function(error) {
