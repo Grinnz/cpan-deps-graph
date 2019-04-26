@@ -19,13 +19,19 @@ function create_graph(elements, graphtype) {
       nodeDimensionsIncludeLabels: true,
       randomize: true
     };
+  } else if (graphtype === 'topdown') {
+    layout = {
+      name: 'breadthfirst',
+      directed: true,
+      spacingFactor: 1
+    };
   } else {
     layout = {
       name: 'breadthfirst',
       circle: true,
       directed: true,
       spacingFactor: 1
-    }
+    };
   }
   var cy = cytoscape({
     container: document.getElementById('deps'),
@@ -59,7 +65,7 @@ function create_graph(elements, graphtype) {
 var params = new URLSearchParams(window.location.search.substring(1));
 var dist = params.get('dist');
 var graphtype = params.get('type');
-if (graphtype === null || graphtype === '') { graphtype = 'breadthfirst'; }
+if (graphtype === null) { graphtype = ''; }
 
 var deps_url = new URL('/api/v1/deps', window.location.href);
 deps_url.searchParams.set('dist', dist);
