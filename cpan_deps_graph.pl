@@ -29,6 +29,7 @@ helper phases => sub ($c) { qw(configure build test runtime develop) };
 helper relationships => sub ($c) { qw(requires recommends suggests) };
 
 helper retrieve_dist_deps => sub ($c, $dist) {
+  return {} if $dist eq 'Acme-DependOnEverything'; # not happening
   my $mcpan = $c->mcpan;
   my $release;
   try { $release = $mcpan->release($dist) } catch { return {} }
@@ -65,7 +66,7 @@ helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
       my $key = "cpandeps:$dist:$phase:$relationship";
       $redis->del($key);
       my $modules = $deps->{$phase}{$relationship} // [];
-      $redis->set($key, to_json $modules);
+      $redis->set($key, to_json $modules) if @$modules;
     }
   }
   $redis->exec;
@@ -95,8 +96,7 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version =
   foreach my $phase (@$phases) {
     foreach my $relationship (@$relationships) {
       my $key = "cpandeps:$dist:$phase:$relationship";
-      my $deps_json = $redis->get($key);
-      next unless defined $deps_json;
+      my $deps_json = $redis->get($key) // next;
       my $deps;
       try { $deps = from_json $deps_json } catch { next }
       foreach my $dep (@$deps) {
