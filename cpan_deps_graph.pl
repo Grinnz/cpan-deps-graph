@@ -48,7 +48,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
     my $path = $package->{path} // next;
     my $distname = CPAN::DistnameInfo->new($path)->dist;
     next if $distname eq 'perl';
-    $deps{$_->{phase}}{$_->{relationship}}{$distname} = 1 for @{$deps_by_module{$module}};
+    $deps{$_->{phase}}{$_->{relationship}}{$distname} = $_->{version} for @{$deps_by_module{$module}};
   }
   return \%deps;
 };
@@ -62,7 +62,7 @@ helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
       my $key = "cpandeps:$dist:$phase:$relationship";
       $redis->del($key);
       my $dists = $deps->{$phase}{$relationship};
-      $redis->lpush($key, keys %$dists) if defined $dists and keys %$dists;
+      $redis->hmset($key, %$dists) if defined $dists and keys %$dists;
     }
   }
   $redis->exec;
@@ -89,10 +89,10 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships) {
   foreach my $phase (@$phases) {
     foreach my $relationship (@$relationships) {
       my $key = "cpandeps:$dist:$phase:$relationship";
-      $deps{$_} = 1 for @{$redis->lrange($key, 0, -1)};
+      %deps = (%deps, %{$redis->hgetall($key)});
     }
   }
-  return [sort keys %deps];
+  return \%deps;
 };
 
 helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
@@ -102,10 +102,10 @@ helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
   while (defined(my $dist = shift @to_check)) {
     next if $seen{$dist}++;
     my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships);
-    foreach my $dep (@$dist_deps) {
-      $children{$dep} //= {};
-      $children{$dist}{$dep} = 1;
-      push @to_check, $dep;
+    foreach my $dist_dep (keys %$dist_deps) {
+      $children{$dist_dep} //= {};
+      $children{$dist}{$dist_dep} = 1;
+      push @to_check, $dist_dep;
     }
   }
   my @nodes = map {
