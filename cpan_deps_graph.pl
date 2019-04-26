@@ -99,7 +99,12 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version =
       next unless defined $deps_json;
       my $deps;
       try { $deps = from_json $deps_json } catch { next }
-      $all_deps{$_->{dist}} = 1 for grep { !Module::CoreList::is_core $_->{module}, $_->{version}, $perl_version } @$deps;
+      foreach my $dep (@$deps) {
+        try {
+          next if Module::CoreList::is_core $dep->{module}, $dep->{version}, $perl_version;
+        } catch {}
+        $all_deps{$dep->{dist}} = 1;
+      }
     }
   }
   return \%all_deps;
