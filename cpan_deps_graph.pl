@@ -35,11 +35,15 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   foreach my $dep (@{$release->dependency}) {
     push @{$deps_by_module{$dep->{module}}}, $dep;
   }
-  my $url = Mojo::URL->new('https://cpanmeta.grinnz.com/api/v2/packages')
-    ->query(module => [keys %deps_by_module]);
-  my $dep_packages = getjson("$url")->{data};
+  my @modules = keys %deps_by_module;
+  my @package_data;
+  while (my @chunk = splice @modules, 0, 100) {
+    my $url = Mojo::URL->new('https://cpanmeta.grinnz.com/api/v2/packages')
+      ->query(module => \@chunk);
+    push @package_data, @{getjson("$url")->{data}};
+  }
   my %deps;
-  foreach my $package (@$dep_packages) {
+  foreach my $package (@package_data) {
     my $module = $package->{module} // next;
     my $path = $package->{path} // next;
     my $distname = CPAN::DistnameInfo->new($path)->dist;
