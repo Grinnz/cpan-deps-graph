@@ -16,7 +16,6 @@ function create_graph(elements, graphtype) {
   if (graphtype === 'cose') {
     layout = {
       name: 'cose',
-      nodeDimensionsIncludeLabels: true,
       randomize: true
     };
   } else if (graphtype === 'topdown') {
@@ -25,12 +24,16 @@ function create_graph(elements, graphtype) {
       directed: true,
       spacingFactor: 1
     };
-  } else if (graphtype === 'circle') {
+  } else if (graphtype === 'concentric') {
     layout = {
       name: 'breadthfirst',
       circle: true,
       directed: true,
       spacingFactor: 1
+    };
+  } else {
+    layout = {
+      name: graphtype
     };
   }
   var cy = cytoscape({
@@ -100,7 +103,7 @@ fetch(deps_url).then(function(response) {
   }
 }).then(function(data) {
   if (graphtype === null || graphtype === '') {
-    graphtype = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'circle';
+    graphtype = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'concentric';
   }
   var elements = populate_graph(data);
   create_graph(elements, graphtype);
