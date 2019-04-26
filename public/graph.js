@@ -65,12 +65,29 @@ function create_graph(elements, graphtype) {
 var params = new URLSearchParams(window.location.search.substring(1));
 var dist = params.get('dist');
 var graphtype = params.get('type');
-if (graphtype === null) { graphtype = ''; }
+var phase = params.get('phase');
+var recommends = params.get('recommends');
+var suggests = params.get('suggests');
 
 var deps_url = new URL('/api/v1/deps', window.location.href);
 deps_url.searchParams.set('dist', dist);
 deps_url.searchParams.set('phase', 'runtime');
+if (phase === 'build') {
+  deps_url.searchParams.append('phase', 'configure');
+  deps_url.searchParams.append('phase', 'build');
+} else if (phase === 'test') {
+  deps_url.searchParams.append('phase', 'configure');
+  deps_url.searchParams.append('phase', 'build');
+  deps_url.searchParams.append('phase', 'test');
+} else if (phase === 'develop') {
+  deps_url.searchParams.append('phase', 'configure');
+  deps_url.searchParams.append('phase', 'build');
+  deps_url.searchParams.append('phase', 'test');
+  deps_url.searchParams.append('phase', 'develop');
+}
 deps_url.searchParams.set('relationship', 'requires');
+if (recommends) { deps_url.searchParams.append('relationship', 'recommends'); }
+if (suggests) { deps_url.searchParams.append('relationship', 'suggests'); }
 fetch(deps_url).then(function(response) {
   if (response.ok) {
     return response.json();
