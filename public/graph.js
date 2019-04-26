@@ -13,6 +13,7 @@ function populate_graph(data) {
 
 function create_graph(elements, graphtype) {
   var layout;
+  if (graphtype === null || graphtype === '') { graphtype = 'topdown'; }
   if (graphtype === 'cose') {
     layout = {
       name: 'cose',
@@ -25,7 +26,7 @@ function create_graph(elements, graphtype) {
       directed: true,
       spacingFactor: 1
     };
-  } else {
+  } else if (graphtype === 'circle') {
     layout = {
       name: 'breadthfirst',
       circle: true,
@@ -68,6 +69,7 @@ var graphtype = params.get('type');
 var phase = params.get('phase');
 var recommends = params.get('recommends');
 var suggests = params.get('suggests');
+var perl_version = params.get('perl_version');
 
 var deps_url = new URL('/api/v1/deps', window.location.href);
 deps_url.searchParams.set('dist', dist);
@@ -88,6 +90,9 @@ if (phase === 'build') {
 deps_url.searchParams.set('relationship', 'requires');
 if (recommends) { deps_url.searchParams.append('relationship', 'recommends'); }
 if (suggests) { deps_url.searchParams.append('relationship', 'suggests'); }
+if (perl_version !== null) {
+  deps_url.searchParams.set('perl_version', perl_version);
+}
 fetch(deps_url).then(function(response) {
   if (response.ok) {
     return response.json();

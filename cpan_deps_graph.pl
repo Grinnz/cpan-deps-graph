@@ -2,9 +2,11 @@
 use 5.020;
 use Mojolicious::Lite -signatures;
 use CPAN::DistnameInfo;
-use Cpanel::JSON::XS;
+use Cpanel::JSON::XS ();
 use HTTP::Simple 'getjson';
 use MetaCPAN::Client;
+use Module::CoreList;
+use Mojo::JSON qw(from_json to_json);
 use Mojo::Redis;
 use Mojo::URL;
 use Syntax::Keyword::Try;
@@ -33,6 +35,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   return {} unless defined $release->dependency and @{$release->dependency};
   my %deps_by_module;
   foreach my $dep (@{$release->dependency}) {
+    next if $dep->{module} eq 'perl';
     push @{$deps_by_module{$dep->{module}}}, $dep;
   }
   my @modules = keys %deps_by_module;
@@ -47,8 +50,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
     my $module = $package->{module} // next;
     my $path = $package->{path} // next;
     my $distname = CPAN::DistnameInfo->new($path)->dist;
-    next if $distname eq 'perl';
-    $deps{$_->{phase}}{$_->{relationship}}{$distname} = $_->{version} for @{$deps_by_module{$module}};
+    push @{$deps{$_->{phase}}{$_->{relationship}}}, {dist => $distname, module => $module, version => $_->{version}} for @{$deps_by_module{$module}};
   }
   return \%deps;
 };
@@ -61,8 +63,8 @@ helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
     foreach my $relationship ($c->relationships) {
       my $key = "cpandeps:$dist:$phase:$relationship";
       $redis->del($key);
-      my $dists = $deps->{$phase}{$relationship};
-      $redis->hmset($key, %$dists) if defined $dists and keys %$dists;
+      my $modules = $deps->{$phase}{$relationship} // [];
+      $redis->set($key, to_json $modules);
     }
   }
   $redis->exec;
@@ -77,31 +79,38 @@ helper cache_dist_deeply => sub ($c, $dist) {
     $c->cache_dist_deps($dist, $deps);
     foreach my $phase (keys %$deps) {
       foreach my $relationship (keys %{$deps->{$phase}}) {
-        push @to_check, keys %{$deps->{$phase}{$relationship}};
+        my $modules = $deps->{$phase}{$relationship};
+        my %dists;
+        $dists{$_->{dist}} = 1 for @$modules;
+        push @to_check, keys %dists;
       }
     }
   }
 };
 
-helper get_dist_deps => sub ($c, $dist, $phases, $relationships) {
+helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
   my $redis = $c->redis->db;
-  my %deps;
+  my %all_deps;
   foreach my $phase (@$phases) {
     foreach my $relationship (@$relationships) {
       my $key = "cpandeps:$dist:$phase:$relationship";
-      %deps = (%deps, %{$redis->hgetall($key)});
+      my $deps_json = $redis->get($key);
+      next unless defined $deps_json;
+      my $deps;
+      try { $deps = from_json $deps_json } catch { next }
+      $all_deps{$_->{dist}} = 1 for grep { !Module::CoreList::is_core $_->{module}, $_->{version}, $perl_version } @$deps;
     }
   }
-  return \%deps;
+  return \%all_deps;
 };
 
-helper dist_dep_graph => sub ($c, $dist, $phases, $relationships) {
+helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
   my %seen;
   my %children = ($dist => {});
   my @to_check = $dist;
   while (defined(my $dist = shift @to_check)) {
     next if $seen{$dist}++;
-    my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships);
+    my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships, $perl_version);
     foreach my $dist_dep (keys %$dist_deps) {
       $children{$dist_dep} //= {};
       $children{$dist}{$dist_dep} = 1;
@@ -120,7 +129,8 @@ get '/api/v1/deps' => sub ($c) {
   $phases = [$c->phases] unless @$phases;
   my $relationships = $c->req->every_param('relationship');
   $relationships = [$c->relationships] unless @$relationships;
-  $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships));
+  my $perl_version = $c->req->param('perl_version') // $];
+  $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
 };
 
 get '/graph';
