@@ -50,6 +50,7 @@ helper retrieve_dist_deps => sub ($c, $dist) {
     my $module = $package->{module} // next;
     my $path = $package->{path} // next;
     my $distname = CPAN::DistnameInfo->new($path)->dist;
+    next if $distname eq 'perl';
     push @{$deps{$_->{phase}}{$_->{relationship}}}, {dist => $distname, module => $module, version => $_->{version}} for @{$deps_by_module{$module}};
   }
   return \%deps;
