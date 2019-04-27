@@ -83,11 +83,6 @@ if (phase === 'build') {
   deps_url.searchParams.append('phase', 'configure');
   deps_url.searchParams.append('phase', 'build');
   deps_url.searchParams.append('phase', 'test');
-} else if (phase === 'develop') {
-  deps_url.searchParams.append('phase', 'configure');
-  deps_url.searchParams.append('phase', 'build');
-  deps_url.searchParams.append('phase', 'test');
-  deps_url.searchParams.append('phase', 'develop');
 }
 deps_url.searchParams.set('relationship', 'requires');
 if (recommends) { deps_url.searchParams.append('relationship', 'recommends'); }
