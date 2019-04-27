@@ -27,14 +27,14 @@
           </div>
           <label class="sr-only" for="form-perl-version">Perl Version</label>
           <input type="text" class="form-control mb-2 mr-2" id="form-perl-version" name="perl_version" value="<%= $perl_version || version->parse("$]")->normal %>" placeholder="Perl Version">
-          <button type="submit" class="btn btn-primary mb-2 mr-2" formaction="/table">Table</button>
+          <button type="submit" class="btn btn-secondary mb-2 mr-2" formaction="/table">Table</button>
           <select class="form-control mb-2 mr-2" name="style">
             <option value="auto"<% if (!defined $style or $style eq 'auto') { %> selected<% } %>>Auto</option>
             <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
             <option value="concentric"<% if (defined $style and $style eq 'concentric') { %> selected<% } %>>Concentric</option>
             <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
           </select>
-          <button type="submit" class="btn btn-primary mb-2 mr-2" formaction="/graph">Graph</button>
+          <button type="submit" class="btn btn-secondary mb-2 mr-2" formaction="/graph">Graph</button>
         </form>
       </div>
     <% if (stash('fixed_layout')) { %></div><% } %>
