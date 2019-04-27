@@ -75,6 +75,7 @@ function create_graph(elements, graphstyle, root) {
 function retrieve_graph() {
   var params = new URLSearchParams(window.location.search.substring(1));
   var dist = params.get('dist');
+  if (dist === null || dist === '') { return null; }
   var graphstyle = params.get('style');
   var phase = params.get('phase');
   var recommends = params.get('recommends');
