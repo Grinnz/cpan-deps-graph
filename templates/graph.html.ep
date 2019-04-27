@@ -3,10 +3,46 @@
 <head>
   <meta charset="utf-8">
   <title><%= param('dist') %> - CPAN Dependencies Graph</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
-  <div style="height: 10vh; text-align: center; font-family: sans;"><h2><%= param('dist') %></h2></div>
-  <div id="deps" style="width: 95vw; height: 85vh; margin: auto;"></div>
+  <div class="container-fluid">
+    <div style="height: 10vh; overflow: hidden auto;">
+      <div class="row mt-2">
+        <form class="form-inline col-12 justify-content-center" action="/graph" method="GET">
+          <label class="sr-only" for="form-dist-name">Distribution</label>
+          <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= param('dist') %>" placeholder="Distribution">
+          <select class="form-control mb-2 mr-2" name="style">
+            <% my $style = param('style'); %>
+            <option value="auto"<% if (!defined $style or $style eq 'auto') { %> selected<% } %>>Auto</option>
+            <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
+            <option value="concentric"<% if (defined $style and $style eq 'concentric') { %> selected<% } %>>Concentric</option>
+            <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
+          </select>
+          <select class="form-control mb-2 mr-2" name="phase">
+            <% my $phase = param('phase'); %>
+            <option value="runtime"<% if (!defined $phase or $phase eq 'runtime') { %> selected<% } %>>Runtime</option>
+            <option value="build"<% if (defined $phase and $phase eq 'build') { %> selected<% } %>>Build</option>
+            <option value="test"<% if (defined $phase and $phase eq 'test') { %> selected<% } %>>Build &amp; Test</option>
+          </select>
+          <div class="form-check form-check-inline mb-2 mr-2">
+            <input class="form-check-input" type="checkbox" id="form-include-recommends" name="recommends" value="1"<% if (param('recommends')) { %> checked<% } %>>
+            <label class="form-check-label" for="form-include-recommends">Recommends</label>
+          </div>
+          <div class="form-check form-check-inline mb-2 mr-2">
+            <input class="form-check-input" type="checkbox" id="form-include-suggests" name="suggests" value="1"<% if (param('suggests')) { %> checked<% } %>>
+            <label class="form-check-label" for="form-include-suggests">Suggests</label>
+          </div>
+          <label class="sr-only" for="form-perl-version">Perl Version</label>
+          <input type="text" class="form-control mb-2 mr-2" id="form-perl-version" name="perl_version" value="<%= param('perl_version') || version->parse("$]")->normal %>" placeholder="Perl Version">
+          <button type="submit" class="btn btn-primary mb-2">Submit</button>
+        </form>
+      </div>
+    </div>
+    <div class="row justify-content-center" style="height: 85vh;">
+      <div id="deps" class="col-12"></div>
+    </div>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.5.4/cytoscape.min.js" integrity="sha256-pNb/9BiuHjIqp9FjfViB/xIHO/xSO4YwSkAzQI1t7gw=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/url-polyfill@1.1.5/url-polyfill.min.js" integrity="sha256-ZSI7Fm/oJtJpkwXXAL0SoqbVdG8ksnhrRz3MxwAOEEc=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/dist/fetch.umd.js" integrity="sha256-mgxDAbboBKeoCOtpaU7QhWdgWBGum+8dPxnIjiC97JI=" crossorigin="anonymous"></script>

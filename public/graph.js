@@ -11,21 +11,21 @@ function populate_graph(data) {
   return {nodes: nodes, edges: edges};
 }
 
-function create_graph(elements, graphtype, root) {
+function create_graph(elements, graphstyle, root) {
   var layout;
-  if (graphtype === 'cose') {
+  if (graphstyle === 'cose') {
     layout = {
       name: 'cose',
       randomize: true
     };
-  } else if (graphtype === 'topdown') {
+  } else if (graphstyle === 'topdown') {
     layout = {
       name: 'breadthfirst',
       directed: true,
       spacingFactor: 1,
       roots: '#' + root
     };
-  } else if (graphtype === 'concentric') {
+  } else if (graphstyle === 'concentric') {
     layout = {
       name: 'breadthfirst',
       circle: true,
@@ -35,7 +35,7 @@ function create_graph(elements, graphtype, root) {
     };
   } else {
     layout = {
-      name: graphtype
+      name: graphstyle
     };
   }
   var cy = cytoscape({
@@ -70,7 +70,7 @@ function create_graph(elements, graphtype, root) {
 
 var params = new URLSearchParams(window.location.search.substring(1));
 var dist = params.get('dist');
-var graphtype = params.get('type');
+var graphstyle = params.get('style');
 var phase = params.get('phase');
 var recommends = params.get('recommends');
 var suggests = params.get('suggests');
@@ -90,7 +90,7 @@ if (phase === 'build') {
 deps_url.searchParams.set('relationship', 'requires');
 if (recommends) { deps_url.searchParams.append('relationship', 'recommends'); }
 if (suggests) { deps_url.searchParams.append('relationship', 'suggests'); }
-if (perl_version !== null) {
+if (perl_version !== null && perl_version !== '') {
   deps_url.searchParams.set('perl_version', perl_version);
 }
 fetch(deps_url).then(function(response) {
@@ -100,11 +100,11 @@ fetch(deps_url).then(function(response) {
     throw new Error(response.status + ' ' + response.statusText);
   }
 }).then(function(data) {
-  if (graphtype === null || graphtype === '') {
-    graphtype = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'concentric';
+  if (graphstyle === null || graphstyle === 'auto') {
+    graphstyle = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'concentric';
   }
   var elements = populate_graph(data);
-  create_graph(elements, graphtype, dist);
+  create_graph(elements, graphstyle, dist);
 }).catch(function(error) {
   console.log('Error retrieving dependencies', error);
 });

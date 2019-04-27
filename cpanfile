@@ -1,5 +1,6 @@
 requires 'perl' => '5.020';
 requires 'lib::relative';
+requires 'version';
 requires 'CPAN::DistnameInfo';
 requires 'Cpanel::JSON::XS' => '4.09';
 requires 'IO::Socket::SSL' => '1.56';

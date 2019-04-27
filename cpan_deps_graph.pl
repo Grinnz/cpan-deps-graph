@@ -10,6 +10,7 @@ use Mojo::JSON qw(from_json to_json);
 use Mojo::Redis;
 use Mojo::URL;
 use Syntax::Keyword::Try;
+use version;
 use lib::relative 'lib';
 
 $HTTP::Simple::JSON = Cpanel::JSON::XS->new->utf8->allow_dupkeys;
@@ -92,6 +93,7 @@ helper cache_dist_deeply => sub ($c, $dist) {
 };
 
 helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+  $perl_version = version->parse($perl_version)->numify if $perl_version;
   my $redis = $c->redis->db;
   my %all_deps;
   foreach my $phase (@$phases) {
