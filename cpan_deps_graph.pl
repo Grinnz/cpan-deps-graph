@@ -135,13 +135,39 @@ helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version 
 get '/api/v1/deps' => sub ($c) {
   my $dist = $c->req->param('dist');
   my $phases = $c->req->every_param('phase');
-  $phases = [$c->phases] unless @$phases;
+  $phases = ['runtime'] unless @$phases;
   my $relationships = $c->req->every_param('relationship');
-  $relationships = [$c->relationships] unless @$relationships;
-  my $perl_version = $c->req->param('perl_version') // $];
+  $relationships = ['requires'] unless @$relationships;
+  my $perl_version = $c->req->param('perl_version') // "$]";
   $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
 };
 
-get '/graph';
+helper read_params => sub ($c) {
+  $c->stash(dist => $c->req->param('dist'));
+  $c->stash(style => $c->req->param('style'));
+  $c->stash(phase => $c->req->param('phase'));
+  $c->stash(recommends => $c->req->param('recommends'));
+  $c->stash(suggests => $c->req->param('suggests'));
+  $c->stash(perl_version => $c->req->param('perl_version'));
+};
+
+get '/graph' => sub ($c) { $c->read_params; $c->render };
+get '/table' => sub ($c) {
+  $c->read_params;
+  return $c->render unless length(my $dist = $c->stash('dist'));
+  my $phases = ['runtime'];
+  my $phase = $c->stash('phase') // 'runtime';
+  if ($phase eq 'build') {
+    push @$phases, 'configure', 'build';
+  } elsif ($phase eq 'test') {
+    push @$phases, 'configure', 'build', 'test';
+  }
+  my $relationships = ['requires'];
+  push @$relationships, 'recommends' if $c->stash('recommends');
+  push @$relationships, 'suggests' if $c->stash('suggests');
+  my $perl_version = $c->stash('perl_version') || "$]";
+  $c->stash(deps => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
+  $c->render;
+};
 
 app->start;

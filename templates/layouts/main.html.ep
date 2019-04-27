@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title><% if (length $dist) { %><%= $dist %> - <% } %>CPAN Dependencies Graph</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+  <div class="container-fluid">
+    <% if ($fixed) { %><div style="height: 10vh; overflow: hidden auto;"><% } %>
+      <div class="row mt-2">
+        <form class="form-inline col-12 justify-content-center" action="/graph" method="GET">
+          <label class="sr-only" for="form-dist-name">Distribution</label>
+          <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
+          <select class="form-control mb-2 mr-2" name="style">
+            <option value="auto"<% if (!defined $style or $style eq 'auto') { %> selected<% } %>>Auto</option>
+            <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
+            <option value="concentric"<% if (defined $style and $style eq 'concentric') { %> selected<% } %>>Concentric</option>
+            <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
+          </select>
+          <select class="form-control mb-2 mr-2" name="phase">
+            <option value="runtime"<% if (!defined $phase or $phase eq 'runtime') { %> selected<% } %>>Runtime</option>
+            <option value="build"<% if (defined $phase and $phase eq 'build') { %> selected<% } %>>Build</option>
+            <option value="test"<% if (defined $phase and $phase eq 'test') { %> selected<% } %>>Build &amp; Test</option>
+          </select>
+          <div class="form-check form-check-inline mb-2 mr-2">
+            <input class="form-check-input" type="checkbox" id="form-include-recommends" name="recommends" value="1"<% if ($recommends) { %> checked<% } %>>
+            <label class="form-check-label" for="form-include-recommends">Recommends</label>
+          </div>
+          <div class="form-check form-check-inline mb-2 mr-2">
+            <input class="form-check-input" type="checkbox" id="form-include-suggests" name="suggests" value="1"<% if ($suggests) { %> checked<% } %>>
+            <label class="form-check-label" for="form-include-suggests">Suggests</label>
+          </div>
+          <label class="sr-only" for="form-perl-version">Perl Version</label>
+          <input type="text" class="form-control mb-2 mr-2" id="form-perl-version" name="perl_version" value="<%= $perl_version || version->parse("$]")->normal %>" placeholder="Perl Version">
+          <button type="submit" class="btn btn-primary mb-2">Submit</button>
+        </form>
+      </div>
+    <% if ($fixed) { %></div>
+    <div class="row justify-content-center" style="height: 85vh;"><% } %>
+      %= content
+    <% if ($fixed) { %></div><% } %>
+  </div>
+</body>
+</html>
