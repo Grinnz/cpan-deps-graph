@@ -141,9 +141,8 @@ helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version 
 
 helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
   my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
-  my %seen = ($dist => 1);
-  my $parent = $dist;
-  my @to_check = map { +{dist => $_, level => 1} } sort keys %{$tree->{$dist}};
+  my %seen;
+  my @to_check = {dist => $dist, level => 1};
   my @table;
   while (defined(my $dep = shift @to_check)) {
     my ($dist, $level) = @$dep{'dist','level'};
