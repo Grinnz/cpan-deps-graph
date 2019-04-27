@@ -9,7 +9,7 @@
   <div class="container-fluid">
     <% if (stash('fixed_layout')) { %><div style="height: 10vh; overflow: hidden auto;"><% } %>
       <div class="row mt-2">
-        <form class="form-inline col-12 justify-content-center" method="GET">
+        <form class="form-inline col justify-content-center" method="GET">
           <button type="submit" formaction="<%= url_for %>" style="display: none;"></button><!-- hack for enter key submission -->
           <label class="sr-only" for="form-dist-name">Distribution</label>
           <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
@@ -37,6 +37,7 @@
             <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
           </select>
           <button type="submit" class="btn btn-secondary mb-2 mr-2" formaction="/graph">Graph</button>
+          <a href="https://github.com/Grinnz/cpan-deps-graph" class="mb-2">Source</a>
         </form>
       </div>
     <% if (stash('fixed_layout')) { %></div><% } %>
