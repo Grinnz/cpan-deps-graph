@@ -11,7 +11,7 @@ function populate_graph(data) {
   return {nodes: nodes, edges: edges};
 }
 
-function create_graph(elements, graphtype) {
+function create_graph(elements, graphtype, root) {
   var layout;
   if (graphtype === 'cose') {
     layout = {
@@ -22,14 +22,16 @@ function create_graph(elements, graphtype) {
     layout = {
       name: 'breadthfirst',
       directed: true,
-      spacingFactor: 1
+      spacingFactor: 1,
+      roots: '#' + root
     };
   } else if (graphtype === 'concentric') {
     layout = {
       name: 'breadthfirst',
       circle: true,
       directed: true,
-      spacingFactor: 1
+      spacingFactor: 1,
+      roots: '#' + root
     };
   } else {
     layout = {
@@ -101,7 +103,7 @@ fetch(deps_url).then(function(response) {
     graphtype = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'concentric';
   }
   var elements = populate_graph(data);
-  create_graph(elements, graphtype);
+  create_graph(elements, graphtype, dist);
 }).catch(function(error) {
   console.log('Error retrieving dependencies', error);
 });
