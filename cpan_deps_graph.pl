@@ -175,6 +175,7 @@ helper read_params => sub ($c) {
   $c->stash(perl_version => $c->req->param('perl_version'));
 };
 
+get '/' => sub ($c) { $c->redirect_to('graph') };
 get '/graph' => sub ($c) { $c->read_params; $c->render };
 get '/table' => sub ($c) {
   $c->read_params;
