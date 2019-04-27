@@ -175,27 +175,26 @@ helper read_params => sub ($c) {
   $c->stash(perl_version => $c->req->param('perl_version'));
 };
 
-get '/' => sub ($c) { $c->redirect_to('graph') };
-get '/graph' => sub ($c) { $c->read_params; $c->render };
-get '/table' => sub ($c) {
+get '/' => sub ($c) {
   $c->read_params;
-  $c->stash(deps => []);
-  return $c->render unless length(my $dist = $c->stash('dist'));
-  my $phases = ['runtime'];
-  my $phase = $c->stash('phase') // 'runtime';
-  if ($phase eq 'build') {
-    push @$phases, 'configure', 'build';
-  } elsif ($phase eq 'test') {
-    push @$phases, 'configure', 'build', 'test';
-  } elsif ($phase eq 'configure') {
-    $phases = ['configure'];
+  if (($c->stash('style') // '') eq 'table') {
+    return $c->render unless length(my $dist = $c->stash('dist'));
+    my $phases = ['runtime'];
+    my $phase = $c->stash('phase') // 'runtime';
+    if ($phase eq 'build') {
+      push @$phases, 'configure', 'build';
+    } elsif ($phase eq 'test') {
+      push @$phases, 'configure', 'build', 'test';
+    } elsif ($phase eq 'configure') {
+      $phases = ['configure'];
+    }
+    my $relationships = ['requires'];
+    push @$relationships, 'recommends' if $c->stash('recommends');
+    push @$relationships, 'suggests' if $c->stash('suggests');
+    my $perl_version = $c->stash('perl_version') || "$]";
+    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
   }
-  my $relationships = ['requires'];
-  push @$relationships, 'recommends' if $c->stash('recommends');
-  push @$relationships, 'suggests' if $c->stash('suggests');
-  my $perl_version = $c->stash('perl_version') || "$]";
-  $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
   $c->render;
-};
+} => 'graph';
 
 app->start;

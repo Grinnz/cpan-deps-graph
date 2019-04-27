@@ -7,10 +7,9 @@
 </head>
 <body>
   <div class="container-fluid">
-    <% if (stash('fixed_layout')) { %><div style="height: 10vh; overflow: hidden auto;"><% } %>
+    <% if (($style // '') ne 'table') { %><div style="height: 10vh; overflow: hidden auto;"><% } %>
       <div class="row mt-2">
         <form class="form-inline col justify-content-center" method="GET">
-          <button type="submit" formaction="<%= url_for %>" style="display: none;"></button><!-- hack for enter key submission -->
           <label class="sr-only" for="form-dist-name">Distribution</label>
           <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
           <select class="form-control mb-2 mr-2" name="phase">
@@ -29,18 +28,18 @@
           </div>
           <label class="sr-only" for="form-perl-version">Perl Version</label>
           <input type="text" class="form-control mb-2 mr-2" id="form-perl-version" name="perl_version" value="<%= $perl_version || version->parse("$]")->normal %>" placeholder="Perl Version">
-          <button type="submit" class="btn btn-secondary mb-2 mr-2" formaction="/table">Table</button>
           <select class="form-control mb-2 mr-2" name="style">
             <option value="auto"<% if (!defined $style or $style eq 'auto') { %> selected<% } %>>Auto</option>
             <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
             <option value="concentric"<% if (defined $style and $style eq 'concentric') { %> selected<% } %>>Concentric</option>
             <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
+            <option value="table"<% if (defined $style and $style eq 'table') { %> selected<% } %>>Table</option>
           </select>
-          <button type="submit" class="btn btn-secondary mb-2 mr-2" formaction="/graph">Graph</button>
+          <button type="submit" class="btn btn-secondary mb-2 mr-2">Submit</button>
           <a href="https://github.com/Grinnz/cpan-deps-graph" class="mb-2">Source</a>
         </form>
       </div>
-    <% if (stash('fixed_layout')) { %></div><% } %>
+    <% if (($style // '') ne 'table') { %></div><% } %>
     %= content
   </div>
 </body>
