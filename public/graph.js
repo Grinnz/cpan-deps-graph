@@ -107,7 +107,7 @@ function retrieve_graph() {
     }
   }).then(function(data) {
     if (graphstyle === null || graphstyle === 'auto') {
-      graphstyle = data.every(function(elem) { return elem.children.length < 10 ? true : false }) ? 'topdown' : 'concentric';
+      graphstyle = data.every(function(elem) { return elem.children.length <= 10 ? true : false }) ? 'topdown' : 'concentric';
     }
     var elements = populate_graph(data);
     create_graph(elements, graphstyle, dist);

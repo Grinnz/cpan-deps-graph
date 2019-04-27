@@ -113,23 +113,45 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version =
   return \%all_deps;
 };
 
-helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
   my %seen;
-  my %children = ($dist => {});
+  my %deps;
   my @to_check = $dist;
   while (defined(my $dist = shift @to_check)) {
     next if $seen{$dist}++;
+    $deps{$dist} = {};
     my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships, $perl_version);
     foreach my $dist_dep (keys %$dist_deps) {
-      $children{$dist_dep} //= {};
-      $children{$dist}{$dist_dep} = 1;
+      $deps{$dist}{$dist_dep} = 1;
       push @to_check, $dist_dep;
     }
   }
+  return \%deps;
+};
+
+helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
   my @nodes = map {
-    {distribution => $_, children => [sort keys %{$children{$_}}]}
-  } sort keys %children;
+    {distribution => $_, children => [sort keys %{$tree->{$_}}]}
+  } sort keys %$tree;
   return \@nodes;
+};
+
+helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
+  my %seen = ($dist => 1);
+  my $parent = $dist;
+  my @to_check = map { +{dist => $_, level => 1} } sort keys %{$tree->{$dist}};
+  my @table;
+  while (defined(my $dep = shift @to_check)) {
+    my ($dist, $level) = @$dep{'dist','level'};
+    push @table, {dist => $dist, level => $level};
+    next if $seen{$dist}++;
+    my @deps = sort keys %{$tree->{$dist}};
+    unshift @to_check, map { +{dist => $_, level => $level+1} } @deps;
+  }
+  $c->app->log->debug(Mojo::Util::dumper \@table);
+  return \@table;
 };
 
 get '/api/v1/deps' => sub ($c) {
@@ -166,7 +188,7 @@ get '/table' => sub ($c) {
   push @$relationships, 'recommends' if $c->stash('recommends');
   push @$relationships, 'suggests' if $c->stash('suggests');
   my $perl_version = $c->stash('perl_version') || "$]";
-  $c->stash(deps => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
+  $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
   $c->render;
 };
 

@@ -1,0 +1,33 @@
+% layout 'main';
+<div class="row">
+  <div class="col"></div>
+  <table class="table table-bordered table-striped table-sm col">
+    % use List::Util 'max';
+    % my $maxlevel = @$deps ? max map { $_->{level} } @$deps : 0;
+    <thead>
+      <tr>
+      % foreach my $level (1..$maxlevel) {
+        <th><%= $level %></th>
+      % }
+      </tr>
+    </thead>
+    <tbody>
+      % my %query = (style => $style, phase => $phase, perl_version => $perl_version);
+      % $query{recommends} = $recommends if $recommends;
+      % $query{suggests} = $suggests if $suggests;
+      % my $query = join '&', map { "$_=$query{$_}" } sort keys %query;
+      % foreach my $row (@$deps) {
+        <tr>
+          % foreach my $i (1..$row->{level}-1) {
+            <td></td>
+          % }
+          <td style="white-space: nowrap;"><a href="?dist=<%= $row->{dist} %>&amp;<%= $query %>"><%= $row->{dist} %></a></td>
+          % foreach my $i ($row->{level}+1..$maxlevel) {
+            <td></td>
+          % }
+        </tr>
+      % }
+    </tbody>
+  </table>
+  <div class="col"></div>
+</div>
