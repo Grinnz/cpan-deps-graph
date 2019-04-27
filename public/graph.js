@@ -57,9 +57,10 @@ function create_graph(elements, graphtype, root) {
       {
         selector: 'edge',
         style: {
+          width: 1.5,
           'curve-style': 'straight',
-          'target-arrow-shape': 'vee',
-          'arrow-scale': 2
+          'target-arrow-shape': 'triangle-backcurve',
+          'arrow-scale': 1.5
         },
       }
     ],
