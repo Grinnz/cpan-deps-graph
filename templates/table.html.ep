@@ -4,13 +4,6 @@
   <table class="table table-bordered table-striped table-sm col">
     % use List::Util 'max';
     % my $maxlevel = @$deps ? max map { $_->{level} } @$deps : 0;
-    <thead>
-      <tr>
-      % foreach my $level (1..$maxlevel) {
-        <th><%= $level %></th>
-      % }
-      </tr>
-    </thead>
     <tbody>
       % my %query = (style => $style, phase => $phase, perl_version => $perl_version);
       % $query{recommends} = $recommends if $recommends;
