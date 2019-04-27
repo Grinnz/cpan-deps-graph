@@ -41,7 +41,7 @@ function create_graph(elements, graphstyle, root) {
   var cy = cytoscape({
     container: document.getElementById('deps'),
     elements: elements,
-    minZoom: 0.1,
+    minZoom: 0.5,
     maxZoom: 2,
     style: [
       {
@@ -59,7 +59,7 @@ function create_graph(elements, graphstyle, root) {
         style: {
           width: 1.5,
           'curve-style': 'straight',
-          'target-arrow-shape': 'triangle-backcurve',
+          'target-arrow-shape': 'vee',
           'arrow-scale': 1.5
         },
       }
