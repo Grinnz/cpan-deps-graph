@@ -9,4 +9,6 @@ requires 'Module::CoreList' => '2.99';
 requires 'Mojolicious' => '8.0';
 requires 'Mojo::Redis';
 requires 'Syntax::Keyword::Try';
+requires 'Time::Piece';
+requires 'Time::Seconds';
 recommends 'Protocol::Redis::XS' => '0.06';

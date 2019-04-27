@@ -3,6 +3,8 @@ package CPANDepsGraph::Command::cache;
 use 5.020;
 use Mojo::Base 'Mojolicious::Command', -signatures;
 use Mojo::Util 'getopt';
+use Time::Piece;
+use Time::Seconds;
 
 sub run ($self, @args) {
   getopt \@args,
@@ -21,6 +23,11 @@ sub run ($self, @args) {
       push @dists, $dist->name;
     }
   } elsif (defined $since) {
+    if ($since eq 'last') {
+      my $redis = $self->app->redis->db;
+      my $last_epoch = $redis->get('cpandeps:last-update') // time - ONE_DAY;
+      $since = gmtime($last_epoch - 3 * ONE_HOUR)->datetime;
+    }
     my $mcpan = $self->app->mcpan;
     my $releases_rs = $mcpan->all('releases', {
       fields => ['distribution'],
