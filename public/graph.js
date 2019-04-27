@@ -36,7 +36,7 @@ function create_graph(elements, graphstyle, root) {
   } else if (graphstyle === 'circle') {
     layout = {
       name: 'circle',
-      spacingFactor: 0.3
+      spacingFactor: 0.5
     };
   } else {
     layout = {
