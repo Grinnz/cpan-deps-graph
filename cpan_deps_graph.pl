@@ -26,8 +26,8 @@ my $url = app->config->{redis_url};
 my $redis = Mojo::Redis->new($url);
 helper redis => sub ($c) { $redis };
 
-helper phases => sub ($c) { qw(configure build test runtime develop) };
-helper relationships => sub ($c) { qw(requires recommends suggests) };
+helper phases => sub ($c) { +{map { ($_ => 1) } qw(configure build test runtime develop)} };
+helper relationships => sub ($c) { +{map { ($_ => 1) } qw(requires recommends suggests)} };
 
 helper retrieve_dist_deps => sub ($c, $dist) {
   return {} if $dist eq 'Acme-DependOnEverything'; # not happening
@@ -38,6 +38,8 @@ helper retrieve_dist_deps => sub ($c, $dist) {
   my %deps_by_module;
   foreach my $dep (@{$release->dependency}) {
     next if $dep->{module} eq 'perl';
+    next unless exists $c->phases->{$dep->{phase}};
+    next unless exists $c->relationships->{$dep->{relationship}};
     push @{$deps_by_module{$dep->{module}}}, $dep;
   }
   my @modules = keys %deps_by_module;
@@ -62,8 +64,8 @@ helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
   $deps //= $c->retrieve_dist_deps($dist);
   my $redis = $c->redis->db;
   $redis->multi;
-  foreach my $phase ($c->phases) {
-    foreach my $relationship ($c->relationships) {
+  foreach my $phase (keys %{$c->phases}) {
+    foreach my $relationship (keys %{$c->relationships}) {
       my $key = "cpandeps:$dist:$phase:$relationship";
       $redis->del($key);
       my $modules = $deps->{$phase}{$relationship} // [];
