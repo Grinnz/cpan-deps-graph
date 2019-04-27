@@ -7,6 +7,7 @@ use Mojo::Util 'getopt';
 sub run ($self, @args) {
   getopt \@args,
     'all|a' => \my $all,
+    'since|s=s' => \my $since,
     'deeply|d' => \my $deeply;
   $deeply = 0 if $all;
 
@@ -18,6 +19,19 @@ sub run ($self, @args) {
     @dists = ();
     while (my $dist = $dists_rs->next) {
       push @dists, $dist->name;
+    }
+  } elsif (defined $since) {
+    my $mcpan = $self->app->mcpan;
+    my $releases_rs = $mcpan->all('releases', {
+      fields => ['distribution'],
+      es_filter => {and => [
+        {range => {date => {gte => $since}}},
+        {term => {status => 'latest'}},
+      ]},
+    });
+    @dists = ();
+    while (my $release = $releases_rs->next) {
+      push @dists, $release->distribution;
     }
   }
   
