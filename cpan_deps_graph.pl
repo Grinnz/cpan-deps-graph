@@ -179,6 +179,7 @@ get '/' => sub ($c) { $c->redirect_to('graph') };
 get '/graph' => sub ($c) { $c->read_params; $c->render };
 get '/table' => sub ($c) {
   $c->read_params;
+  $c->stash(deps => []);
   return $c->render unless length(my $dist = $c->stash('dist'));
   my $phases = ['runtime'];
   my $phase = $c->stash('phase') // 'runtime';
