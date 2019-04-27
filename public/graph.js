@@ -92,6 +92,8 @@ function retrieve_graph() {
     deps_url.searchParams.append('phase', 'configure');
     deps_url.searchParams.append('phase', 'build');
     deps_url.searchParams.append('phase', 'test');
+  } else if (phase === 'configure') {
+    deps_url.searchParams.set('phase', 'configure');
   }
   deps_url.searchParams.set('relationship', 'requires');
   if (recommends) { deps_url.searchParams.append('relationship', 'recommends'); }

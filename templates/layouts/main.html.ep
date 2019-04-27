@@ -14,6 +14,7 @@
           <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
           <select class="form-control mb-2 mr-2" name="phase">
             <option value="runtime"<% if (!defined $phase or $phase eq 'runtime') { %> selected<% } %>>Runtime</option>
+            <option value="configure"<% if (defined $phase and $phase eq 'configure') { %> selected<% } %>>Configure</option>
             <option value="build"<% if (defined $phase and $phase eq 'build') { %> selected<% } %>>Build</option>
             <option value="test"<% if (defined $phase and $phase eq 'test') { %> selected<% } %>>Build &amp; Test</option>
           </select>

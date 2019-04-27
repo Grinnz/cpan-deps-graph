@@ -183,6 +183,8 @@ get '/table' => sub ($c) {
     push @$phases, 'configure', 'build';
   } elsif ($phase eq 'test') {
     push @$phases, 'configure', 'build', 'test';
+  } elsif ($phase eq 'configure') {
+    $phases = ['configure'];
   }
   my $relationships = ['requires'];
   push @$relationships, 'recommends' if $c->stash('recommends');
