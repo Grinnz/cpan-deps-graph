@@ -176,8 +176,16 @@ helper read_params => sub ($c) {
 
 get '/' => sub ($c) {
   $c->read_params;
+  my $dist = $c->stash('dist');
+  if ($dist =~ m/::/) {
+    my $mcpan = $c->mcpan;
+    try {
+      my $module = $mcpan->module($dist, {fields => ['distribution']});
+      return $c->redirect_to($c->url_with->query({dist => $module->distribution}));
+    } catch {}
+  }
   if (($c->stash('style') // '') eq 'table') {
-    return $c->render unless length(my $dist = $c->stash('dist'));
+    return $c->render unless length $dist;
     my $phases = ['runtime'];
     my $phase = $c->stash('phase') // 'runtime';
     if ($phase eq 'build') {
