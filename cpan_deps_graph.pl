@@ -167,7 +167,6 @@ get '/api/v1/deps' => sub ($c) {
 
 get '/' => sub ($c) {
   $c->stash(dist => my $dist = $c->req->param('dist'));
-  my $dist = $c->stash('dist');
   if (length $dist and $dist =~ m/::/) {
     my $mcpan = $c->mcpan;
     try {
