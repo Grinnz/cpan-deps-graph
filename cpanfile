@@ -9,6 +9,7 @@ requires 'List::Util';
 requires 'MetaCPAN::Client';
 requires 'Module::CoreList' => '2.99';
 requires 'Mojolicious' => '8.0';
+requires 'Mojo::Log::Clearable';
 requires 'Mojo::Redis';
 requires 'Syntax::Keyword::Try';
 requires 'Time::Piece';

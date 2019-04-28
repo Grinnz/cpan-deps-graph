@@ -17,6 +17,10 @@ $HTTP::Simple::JSON = Cpanel::JSON::XS->new->utf8->allow_dupkeys;
 
 plugin 'Config' => {file => app->home->child('cpan_deps_graph.conf')};
 
+if (defined(my $logfile = app->config->{logfile})) {
+  app->log->with_roles('+Clearable')->path($logfile);
+}
+
 push @{app->commands->namespaces}, 'CPANDepsGraph::Command';
 
 my $mcpan = MetaCPAN::Client->new;
