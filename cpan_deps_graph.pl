@@ -165,29 +165,24 @@ get '/api/v1/deps' => sub ($c) {
   $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
 };
 
-helper read_params => sub ($c) {
-  $c->stash(dist => $c->req->param('dist'));
-  $c->stash(style => $c->req->param('style'));
-  $c->stash(phase => $c->req->param('phase'));
-  $c->stash(recommends => $c->req->param('recommends'));
-  $c->stash(suggests => $c->req->param('suggests'));
-  $c->stash(perl_version => $c->req->param('perl_version'));
-};
-
 get '/' => sub ($c) {
-  $c->read_params;
+  $c->stash(dist => my $dist = $c->req->param('dist'));
   my $dist = $c->stash('dist');
-  if ($dist =~ m/::/) {
+  if (length $dist and $dist =~ m/::/) {
     my $mcpan = $c->mcpan;
     try {
       my $module = $mcpan->module($dist, {fields => ['distribution']});
       return $c->redirect_to($c->url_with->query({dist => $module->distribution}));
     } catch {}
   }
-  if (($c->stash('style') // '') eq 'table') {
-    return $c->render unless length $dist;
+  $c->stash(style => my $style = $c->req->param('style'));
+  $c->stash(phase => my $phase = $c->req->param('phase'));
+  $c->stash(recommends => my $recommends = $c->req->param('recommends'));
+  $c->stash(suggests => my $suggests = $c->req->param('suggests'));
+  $c->stash(perl_version => my $perl_version = $c->req->param('perl_version'));
+  if (($style // '') eq 'table' and length $dist) {
     my $phases = ['runtime'];
-    my $phase = $c->stash('phase') // 'runtime';
+    $phase //= 'runtime';
     if ($phase eq 'build') {
       push @$phases, 'configure', 'build';
     } elsif ($phase eq 'test') {
@@ -196,10 +191,9 @@ get '/' => sub ($c) {
       $phases = ['configure'];
     }
     my $relationships = ['requires'];
-    push @$relationships, 'recommends' if $c->stash('recommends');
-    push @$relationships, 'suggests' if $c->stash('suggests');
-    my $perl_version = $c->stash('perl_version') || "$]";
-    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
+    push @$relationships, 'recommends' if $recommends;
+    push @$relationships, 'suggests' if $suggests;
+    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version || "$]"));
   }
   $c->render;
 } => 'graph';
