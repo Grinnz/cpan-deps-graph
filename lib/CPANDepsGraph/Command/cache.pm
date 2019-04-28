@@ -10,6 +10,7 @@ sub run ($self, @args) {
   getopt \@args,
     'all|a' => \my $all,
     'since|s=s' => \my $since,
+    'random|r:i' => \my $random,
     'deeply|d' => \my $deeply;
   $deeply = 0 if $all;
 
@@ -40,6 +41,18 @@ sub run ($self, @args) {
     while (my $release = $releases_rs->next) {
       push @dists, $release->distribution;
     }
+  } elsif (defined $random) {
+    my $mcpan = $self->app->mcpan;
+    my $dists_rs = $mcpan->all('distributions', {fields => ['name']});
+    my $total = $dists_rs->total;
+    $random = int rand $total unless $random;
+    @dists = ();
+    my %indexes = map { +int(rand $total) => 1 } 1..$random;
+    my $i = 1;
+    while (my $dist = $dists_rs->next) {
+      push @dists, $dist->name if delete $indexes{$i};
+      last unless keys %indexes;
+    } continue { $i++ }
   }
   
   foreach my $dist (@dists) {
