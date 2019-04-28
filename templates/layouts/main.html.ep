@@ -33,6 +33,7 @@
             <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
             <option value="concentric"<% if (defined $style and $style eq 'concentric') { %> selected<% } %>>Concentric</option>
             <option value="circle"<% if (defined $style and $style eq 'circle') { %> selected<% } %>>Circle</option>
+            <option value="cose"<% if (defined $style and $style eq 'cose') { %> selected<% } %>>CoSE</option>
             <option value="table"<% if (defined $style and $style eq 'table') { %> selected<% } %>>Table</option>
           </select>
           <button type="submit" class="btn btn-secondary mb-2 mr-2">Submit</button>

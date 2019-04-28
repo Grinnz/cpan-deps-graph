@@ -13,12 +13,7 @@ function populate_graph(data) {
 
 function create_graph(elements, graphstyle, root) {
   var layout;
-  if (graphstyle === 'cose') {
-    layout = {
-      name: 'cose',
-      randomize: true
-    };
-  } else if (graphstyle === 'topdown') {
+  if (graphstyle === 'topdown') {
     layout = {
       name: 'breadthfirst',
       directed: true,
