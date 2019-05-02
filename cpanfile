@@ -6,6 +6,7 @@ requires 'Cpanel::JSON::XS' => '4.09';
 requires 'IO::Socket::SSL' => '1.56';
 requires 'HTTP::Simple';
 requires 'List::Util';
+requires 'List::UtilsBy';
 requires 'MetaCPAN::Client';
 requires 'Module::CoreList' => '2.99';
 requires 'Mojolicious' => '8.0';

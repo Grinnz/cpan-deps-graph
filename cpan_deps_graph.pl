@@ -4,6 +4,7 @@ use Mojolicious::Lite -signatures;
 use CPAN::DistnameInfo;
 use Cpanel::JSON::XS ();
 use HTTP::Simple 'getjson';
+use List::UtilsBy 'uniq_by';
 use MetaCPAN::Client;
 use Module::CoreList;
 use Mojo::JSON qw(from_json to_json);
@@ -98,8 +99,8 @@ helper cache_dist_deeply => sub ($c, $dist) {
   }
 };
 
-helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
-  $perl_version = version->parse($perl_version)->numify if $perl_version;
+helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version) {
+  $perl_version = $perl_version->numify;
   my $redis = $c->redis->db;
   my %all_deps;
   foreach my $phase (@$phases) {
@@ -119,7 +120,7 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version =
   return \%all_deps;
 };
 
-helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version) {
   my %seen;
   my %deps;
   my @to_check = $dist;
@@ -135,7 +136,7 @@ helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version =
   return \%deps;
 };
 
-helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version) {
   my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
   my @nodes = map {
     {distribution => $_, children => [sort keys %{$tree->{$_}}]}
@@ -143,7 +144,7 @@ helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version 
   return \@nodes;
 };
 
-helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version = undef) {
+helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version) {
   my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
   my %seen;
   my @to_check = {dist => $dist, level => 1};
@@ -155,7 +156,6 @@ helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version 
     my @deps = sort keys %{$tree->{$dist}};
     unshift @to_check, map { +{dist => $_, level => $level+1} } @deps;
   }
-  $c->app->log->debug(Mojo::Util::dumper \@table);
   return \@table;
 };
 
@@ -166,10 +166,15 @@ get '/api/v1/deps' => sub ($c) {
   my $relationships = $c->req->every_param('relationship');
   $relationships = ['requires'] unless @$relationships;
   my $perl_version = $c->req->param('perl_version') // "$]";
+  try { $perl_version = version->parse($perl_version) } catch { $perl_version = version->parse("$]") }
   $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
 };
 
+my @perl_versions = uniq_by { $_->normal } grep { $_ < '5.006' or !($_->{version}[1] % 2) }
+  map { version->parse($_) } sort {$b <=> $a} keys %Module::CoreList::released;
+
 get '/' => sub ($c) {
+  $c->stash(perl_versions => \@perl_versions);
   $c->stash(dist => my $dist = $c->req->param('dist'));
   if (length $dist and $dist =~ m/::/) {
     my $mcpan = $c->mcpan;
@@ -182,7 +187,9 @@ get '/' => sub ($c) {
   $c->stash(phase => my $phase = $c->req->param('phase'));
   $c->stash(recommends => my $recommends = $c->req->param('recommends'));
   $c->stash(suggests => my $suggests = $c->req->param('suggests'));
-  $c->stash(perl_version => my $perl_version = $c->req->param('perl_version'));
+  my $perl_version = $c->req->param('perl_version') || "$]";
+  try { $perl_version = version->parse($perl_version) } catch { $perl_version = version->parse("$]") }
+  $c->stash(perl_version => $perl_version);
   if (($style // '') eq 'table' and length $dist) {
     my $phases = ['runtime'];
     $phase //= 'runtime';
@@ -196,7 +203,7 @@ get '/' => sub ($c) {
     my $relationships = ['requires'];
     push @$relationships, 'recommends' if $recommends;
     push @$relationships, 'suggests' if $suggests;
-    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version || "$]"));
+    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
   }
   $c->render;
 } => 'graph';

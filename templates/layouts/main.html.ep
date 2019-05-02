@@ -38,7 +38,11 @@
             <label class="form-check-label" for="form-include-suggests">Suggests</label>
           </div>
           <label class="sr-only" for="form-perl-version">Perl Version</label>
-          <input type="text" class="form-control mb-2 mr-2" id="form-perl-version" name="perl_version" value="<%= $perl_version || version->parse("$]")->normal %>" placeholder="Perl Version">
+          <select class="form-control mb-2 mr-2" name="perl_version">
+          % foreach my $version (@$perl_versions) {
+            <option value="<%= $version->normal %>"<% if ($perl_version == $version) { %> selected<% } %>><%= $version->normal %></option>
+          % }
+          </select>
           <select class="form-control mb-2 mr-2" name="style">
             <option value="auto"<% if (!defined $style or $style eq 'auto') { %> selected<% } %>>Auto</option>
             <option value="topdown"<% if (defined $style and $style eq 'topdown') { %> selected<% } %>>Topdown</option>
