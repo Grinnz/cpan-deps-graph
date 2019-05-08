@@ -2,7 +2,6 @@
 use 5.020;
 use Mojolicious::Lite -signatures;
 use CPAN::DistnameInfo;
-use Cpanel::JSON::XS ();
 use HTTP::Simple 'getjson';
 use List::UtilsBy 'uniq_by';
 use MetaCPAN::Client;
@@ -13,8 +12,6 @@ use Mojo::URL;
 use Syntax::Keyword::Try;
 use version;
 use lib::relative 'lib';
-
-$HTTP::Simple::JSON = Cpanel::JSON::XS->new->utf8->allow_dupkeys;
 
 plugin 'Config' => {file => app->home->child('cpan_deps_graph.conf')};
 
