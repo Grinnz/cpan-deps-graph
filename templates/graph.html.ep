@@ -14,7 +14,7 @@
       % foreach my $row (@$deps) {
         <tr>
           % foreach my $i (1..$row->{level}-1) {
-            <td style="border: none;"></td>
+            <td style="border: none; width: 2em;"></td>
           % }
           <td style="white-space: nowrap;"<% if ($maxlevel - $row->{level} > 0) { %> colspan="<%= $maxlevel - $row->{level} + 1 %>"<% } %>><a href="?dist=<%= $row->{dist} %>&amp;<%= $query %>"><%= $row->{dist} %></a></td>
         </tr>
