@@ -52,7 +52,7 @@
             <option value="table"<% if (defined $style and $style eq 'table') { %> selected<% } %>>Table</option>
           </select>
           <button type="submit" class="btn btn-secondary mb-2 mr-2">Submit</button>
-          <a href="https://github.com/Grinnz/cpan-deps-graph" class="mb-2">Source</a>
+          <a href="https://github.com/Grinnz/cpan-deps-graph" class="mb-2">GitHub</a>
         </form>
       </div>
     <% if (($style // '') ne 'table') { %></div><% } %>
