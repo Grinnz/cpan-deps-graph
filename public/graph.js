@@ -43,6 +43,7 @@ function create_graph(elements, graphstyle, root) {
     elements: elements,
     minZoom: 0.1,
     maxZoom: 2,
+    wheelSensitivity: 0.5,
     style: [
       {
         selector: 'node',
