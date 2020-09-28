@@ -31,14 +31,22 @@ helper redis => sub ($c) { $redis };
 helper phases => sub ($c) { +{map { ($_ => 1) } qw(configure build test runtime develop)} };
 helper relationships => sub ($c) { +{map { ($_ => 1) } qw(requires recommends suggests)} };
 
-helper retrieve_dist_deps => sub ($c, $dist) {
+helper retrieve_dist_deps => sub ($c, $dist, $dist_version = undef) {
   return {} if $dist eq 'Acme-DependOnEverything'; # not happening
   my $mcpan = $c->mcpan;
   my $release;
-  try { $release = $mcpan->release($dist) } catch { return {} }
-  return {} unless defined $release->dependency and @{$release->dependency};
+  try {
+    $release = $mcpan->release({
+      all => [
+        { distribution => $dist },
+        ((grep defined && length, $dist_version) ? { version => $dist_version } : { status => 'latest' }),
+      ],
+    });
+    $release = $release->next;
+  } catch { return {} }
+  return {} unless my @deps = @{ ($release && $release->dependency) || [] };
   my %deps_by_module;
-  foreach my $dep (@{$release->dependency}) {
+  foreach my $dep (@deps) {
     next if $dep->{module} eq 'perl';
     next unless exists $c->phases->{$dep->{phase}};
     next unless exists $c->relationships->{$dep->{relationship}};
@@ -96,16 +104,21 @@ helper cache_dist_deeply => sub ($c, $dist) {
   }
 };
 
-helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version) {
+helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version, $dist_version = undef) {
   $perl_version = $perl_version->numify;
   my $redis = $c->redis->db;
   my %all_deps;
+  my $versioned_deps = length($dist_version) ? $c->retrieve_dist_deps($dist, $dist_version) : undef;
   foreach my $phase (@$phases) {
     foreach my $relationship (@$relationships) {
-      my $key = "cpandeps:$dist:$phase:$relationship";
-      my $deps_json = $redis->get($key) // next;
       my $deps;
-      try { $deps = from_json $deps_json } catch { next }
+      if ($versioned_deps) {
+        $deps = $versioned_deps->{$phase}{$relationship} // [];
+      } else {
+        my $key = "cpandeps:$dist:$phase:$relationship";
+        my $deps_json = $redis->get($key) // next;
+        try { $deps = from_json $deps_json } catch { next }
+      }
       foreach my $dep (@$deps) {
         try {
           next if Module::CoreList::is_core $dep->{module}, $dep->{version}, $perl_version;
@@ -117,32 +130,33 @@ helper get_dist_deps => sub ($c, $dist, $phases, $relationships, $perl_version) 
   return \%all_deps;
 };
 
-helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version) {
+helper dist_dep_tree => sub ($c, $dist, $phases, $relationships, $perl_version, $dist_version = undef) {
   my %seen;
   my %deps;
-  my @to_check = $dist;
-  while (defined(my $dist = shift @to_check)) {
+  my @to_check = {dist => $dist, version => $dist_version}; # version only for initial
+  while (defined(my $check = shift @to_check)) {
+    my ($dist, $d_v) = @$check{qw(dist version)};
     next if $seen{$dist}++;
     $deps{$dist} = {};
-    my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships, $perl_version);
+    my $dist_deps = $c->get_dist_deps($dist, $phases, $relationships, $perl_version, $d_v);
     foreach my $dist_dep (keys %$dist_deps) {
       $deps{$dist}{$dist_dep} = 1;
-      push @to_check, $dist_dep;
+      push @to_check, {dist => $dist_dep};
     }
   }
   return \%deps;
 };
 
-helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version) {
-  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
+helper dist_dep_graph => sub ($c, $dist, $phases, $relationships, $perl_version, $dist_version = undef) {
+  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version, $dist_version);
   my @nodes = map {
     {distribution => $_, children => [sort keys %{$tree->{$_}}]}
   } sort keys %$tree;
   return \@nodes;
 };
 
-helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version) {
-  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version);
+helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version, $dist_version = undef) {
+  my $tree = $c->dist_dep_tree($dist, $phases, $relationships, $perl_version, $dist_version);
   my %seen;
   my @to_check = {dist => $dist, level => 1};
   my @table;
@@ -158,13 +172,14 @@ helper dist_dep_table => sub ($c, $dist, $phases, $relationships, $perl_version)
 
 get '/api/v1/deps' => sub ($c) {
   my $dist = $c->req->param('dist');
+  my $dist_version = $c->req->param('dist_version');
   my $phases = $c->req->every_param('phase');
   $phases = ['runtime'] unless @$phases;
   my $relationships = $c->req->every_param('relationship');
   $relationships = ['requires'] unless @$relationships;
   my $perl_version = $c->req->param('perl_version') // "$]";
   try { $perl_version = version->parse($perl_version) } catch { $perl_version = version->parse("$]") }
-  $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version));
+  $c->render(json => $c->dist_dep_graph($dist, $phases, $relationships, $perl_version, $dist_version));
 };
 
 my @perl_versions = uniq_by { $_->normal } grep { $_ < '5.006' or !($_->{version}[1] % 2) }
@@ -173,6 +188,7 @@ my @perl_versions = uniq_by { $_->normal } grep { $_ < '5.006' or !($_->{version
 get '/' => sub ($c) {
   $c->stash(perl_versions => \@perl_versions);
   $c->stash(dist => my $dist = $c->req->param('dist'));
+  $c->stash(dist_version => my $dist_version = $c->req->param('dist_version'));
   if (length $dist and $dist =~ m/::/) {
     my $mcpan = $c->mcpan;
     try {
@@ -200,7 +216,7 @@ get '/' => sub ($c) {
     my $relationships = ['requires'];
     push @$relationships, 'recommends' if $recommends;
     push @$relationships, 'suggests' if $suggests;
-    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version));
+    $c->stash(deps => $c->dist_dep_table($dist, $phases, $relationships, $perl_version, $dist_version));
   }
   $c->render;
 } => 'graph';

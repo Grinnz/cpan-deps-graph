@@ -76,6 +76,7 @@ function create_graph(elements, graphstyle, root) {
 function retrieve_graph() {
   var params = new URLSearchParams(window.location.search.substring(1));
   var dist = params.get('dist');
+  var dist_version = params.get('dist_version');
   if (dist === null || dist === '') { return null; }
   var graphstyle = params.get('style');
   var phase = params.get('phase');
@@ -85,6 +86,8 @@ function retrieve_graph() {
 
   var deps_url = new URL('/api/v1/deps', window.location.href);
   deps_url.searchParams.set('dist', dist);
+  if (dist_version !== null && dist_version !== '')
+    deps_url.searchParams.set('dist_version', dist_version);
   deps_url.searchParams.set('phase', 'runtime');
   if (phase === 'build') {
     deps_url.searchParams.append('phase', 'configure');

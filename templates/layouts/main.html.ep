@@ -23,6 +23,8 @@
         <form class="form-inline col justify-content-center" method="GET">
           <label class="sr-only" for="form-dist-name">Distribution</label>
           <input type="text" class="form-control mb-2 mr-2" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
+          <label class="sr-only" for="form-dist-version">Version</label>
+          <input type="text" class="form-control mb-2 mr-2" id="form-dist-version" name="dist_version" value="<%= $dist_version // '' %>" placeholder="Latest">
           <select class="form-control mb-2 mr-2" name="phase">
             <option value="runtime"<% if (!defined $phase or $phase eq 'runtime') { %> selected<% } %>>Runtime</option>
             <option value="build"<% if (defined $phase and $phase eq 'build') { %> selected<% } %>>Build</option>
