@@ -2,6 +2,23 @@
 
 CPAN Dependencies Graph
 
+=head1 SETUP
+
+To run this in a local environment, you need to create a
+F<cpan_deps_graph.conf>, probably with this in:
+
+  {
+    redis_url => 'redis://localhost/',
+  }
+
+Then load the cache with at least one module's data:
+
+  $ perl cpan_deps_graph.pl cache --deeply GraphViz2
+
+Then run it in dev mode:
+
+  $ perl -Ilib -S morbo cpan_deps_graph.pl
+
 =head1 COPYRIGHT AND LICENSE
 
 This software is Copyright (c) 2019 by Dan Book.
