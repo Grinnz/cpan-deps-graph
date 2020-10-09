@@ -39,7 +39,7 @@ helper retrieve_dist_deps => sub ($c, $dist, $dist_version = undef) {
     $release = $mcpan->release({
       all => [
         { distribution => $dist },
-        ((grep defined && length, $dist_version) ? { version => $dist_version } : { status => 'latest' }),
+        length($dist_version) ? { version => $dist_version } : { status => 'latest' },
       ],
     });
     $release = $release->next;
