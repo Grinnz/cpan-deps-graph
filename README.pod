@@ -4,8 +4,8 @@ CPAN Dependencies Graph
 
 =head1 SETUP
 
-To run this in a local environment, you need to create a
-F<cpan_deps_graph.conf>, for example:
+To run this in a local environment, you need a Redis server,
+and to create a F<cpan_deps_graph.conf> pointing to it, for example:
 
   {
     redis_url => 'redis://localhost/',
