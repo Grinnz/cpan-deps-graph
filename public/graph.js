@@ -1,3 +1,4 @@
+// Update the application $VERSION when deploying a new version of this file
 function populate_graph(data) {
   var nodes = [];
   var edges = [];
