@@ -5,19 +5,23 @@ CPAN Dependencies Graph
 =head1 SETUP
 
 To run this in a local environment, you need to create a
-F<cpan_deps_graph.conf>, probably with this in:
+F<cpan_deps_graph.conf>, for example:
 
   {
     redis_url => 'redis://localhost/',
   }
 
+Install the dependencies from the F<cpanfile>:
+
+  $ cpanm --installdeps .
+
 Then load the cache with at least one module's data:
 
   $ perl cpan_deps_graph.pl cache --deeply GraphViz2
 
-Then run it in dev mode:
+Then start the L<application server|Mojolicious::Guides::Cookbook/DEPLOYMENT>:
 
-  $ perl -Ilib -S morbo cpan_deps_graph.pl
+  $ ./cpan_deps_graph.pl daemon
 
 =head1 COPYRIGHT AND LICENSE
 
