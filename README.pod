@@ -17,7 +17,7 @@ Install the dependencies from the F<cpanfile>:
 
 Then load the cache with at least one module's data:
 
-  $ perl cpan_deps_graph.pl cache --deeply GraphViz2
+  $ ./cpan_deps_graph.pl cache --deeply GraphViz2
 
 Then start the L<application server|Mojolicious::Guides::Cookbook/DEPLOYMENT>:
 
