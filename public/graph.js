@@ -71,6 +71,7 @@ function create_graph(elements, graphstyle, root) {
   cy.on('tap', 'node', function(event) {
     var distname = event.target.data('label');
     document.getElementById('form-dist-name').setAttribute('value', distname);
+    document.getElementById('form-dist-version').setAttribute('value', '');
   });
 }
 
