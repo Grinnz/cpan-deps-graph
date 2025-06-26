@@ -30,5 +30,5 @@
 <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.16.2/dist/cytoscape.min.js" integrity="sha256-kRVHbo6aVOCLOlNC0Gk8I406Pmd8yAQmTwxuukdQDpw=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/url-polyfill@1.1.10/url-polyfill.min.js" integrity="sha256-3hc4aMgfHtQyAOiWKHmWnq2HS9nVLFrzjQlFozhIqAA=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.4.1/dist/fetch.umd.js" integrity="sha256-17sG19PAt2IccZKY2F4xmrujlvGGvjxB0bxuxPuycMw=" crossorigin="anonymous"></script>
-<script src="/graph.js?version=<%= app_version %>"></script>
+%= javascript '/js/graph.js?version=' . app_version;
 % }
