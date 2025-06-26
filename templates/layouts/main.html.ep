@@ -19,7 +19,7 @@
 <body>
   <div class="container-fluid">
     <% if (($style // '') ne 'table') { %><div style="height: 10vh; overflow: hidden auto;"><% } %>
-      <form class="row row-cols-sm-auto g-2 mt-1 align-items-center justify-content-center" method="GET">
+      <form class="row row-cols-sm-auto g-2 mt-2 mb-2 align-items-center justify-content-center" method="GET">
         <div class="col-12">
           <label class="visually-hidden" for="form-dist-name">Distribution</label>
           <input type="text" class="form-control" id="form-dist-name" name="dist" value="<%= $dist // '' %>" placeholder="Distribution">
