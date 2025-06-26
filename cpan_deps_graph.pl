@@ -13,7 +13,7 @@ use Syntax::Keyword::Try;
 use version;
 use lib::relative 'lib';
 
-our $VERSION = 'v1.1.1';
+our $VERSION = 'v1.1.2';
 helper app_version => sub ($c) { $VERSION };
 
 plugin 'Config' => {file => app->home->child('cpan_deps_graph.conf')};

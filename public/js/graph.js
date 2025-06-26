@@ -53,7 +53,8 @@ function create_graph(elements, graphstyle, root) {
           'background-color': '#eeeeee',
           width: 'label',
           shape: 'round-rectangle',
-          'text-valign': 'center'
+          'text-valign': 'center',
+          padding: '1px'
         }
       },
       {
