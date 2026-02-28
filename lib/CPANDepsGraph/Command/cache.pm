@@ -9,6 +9,7 @@ use Time::Seconds;
 sub run ($self, @args) {
   getopt \@args,
     'all|a' => \my $all,
+    'new|n' => \my $new,
     'since|s=s' => \my $since,
     'random|r:i' => \my $random,
     'deeply|d' => \my $deeply;
@@ -21,6 +22,15 @@ sub run ($self, @args) {
     my $dists_rs = $mcpan->all('distributions', {fields => ['name']});
     @dists = ();
     while (my $dist = $dists_rs->next) {
+      push @dists, $dist->name;
+    }
+  } elsif ($new) {
+    my $mcpan = $self->app->mcpan;
+    my $dists_rs = $mcpan->all('distributions', {fields => ['name']});
+    my $redis = $self->app->redis->db;
+    @dists = ();
+    while (my $dist = $dists_rs->next) {
+      next if $redis->sismember('cpandeps:known-dists', $dist->name);
       push @dists, $dist->name;
     }
   } elsif (defined $since) {
