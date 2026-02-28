@@ -85,7 +85,6 @@ helper cache_dist_deps => sub ($c, $dist, $deps = undef) {
       $redis->set($key, to_json $modules) if @$modules;
     }
   }
-  $redis->set('cpandeps:last-update', time);
   $redis->exec;
 };
 
