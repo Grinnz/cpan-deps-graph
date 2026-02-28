@@ -7,7 +7,7 @@ requires 'IO::Socket::SSL' => '1.56';
 requires 'HTTP::Simple' => '0.004';
 requires 'List::Util';
 requires 'List::UtilsBy';
-requires 'MetaCPAN::Client';
+requires 'MetaCPAN::Client' => '2.036000';
 requires 'Module::CoreList' => '2.99';
 requires 'Mojolicious' => '8.0';
 requires 'Mojo::Log::Clearable';

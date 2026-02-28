@@ -32,10 +32,10 @@ sub run ($self, @args) {
     my $mcpan = $self->app->mcpan;
     my $releases_rs = $mcpan->all('releases', {
       fields => ['distribution'],
-      es_filter => {and => [
+      es_filter => {bool => {filter => [
         {range => {date => {gte => $since}}},
         {term => {status => 'latest'}},
-      ]},
+      ]}},
     });
     @dists = ();
     while (my $release = $releases_rs->next) {
