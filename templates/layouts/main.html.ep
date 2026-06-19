@@ -74,6 +74,7 @@
           <a href="https://github.com/Grinnz/cpan-deps-graph">GitHub</a>
         </div>
       </form>
+      <div class="row"><p class="text-center fst-italic fs-6">Dynamically determined dependencies and core modules in the selected Perl version are not shown.</p></div>
     <% if (($style // '') ne 'table') { %></div><% } %>
     %= content
   </div>
