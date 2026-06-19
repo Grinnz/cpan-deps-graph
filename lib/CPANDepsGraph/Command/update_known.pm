@@ -13,7 +13,7 @@ sub run ($self, @args) {
     }
     $count += $self->app->redis->db->sadd('cpandeps:known-dists', @dists);
   }
-  print "Added $count known dists\n";
+  $self->app->log->info("Added $count known dists");
 }
 
 1;

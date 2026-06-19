@@ -73,7 +73,7 @@ sub run ($self, @args) {
     }
     my $redis = $self->app->redis->db;
     $redis->set('cpandeps:last-update', time) if $all or defined $since;
-    print "Cached dependencies for $dist\n";
+    $self->app->log->info("Cached dependencies for $dist");
   }
 }
 
